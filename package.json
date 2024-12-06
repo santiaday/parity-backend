@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tspc",
     "start": "node -r tsconfig-paths/register dist/index.js",
     "dev": "nodemon --exec \"ts-node -r tsconfig-paths/register\" src/index.ts",
     "clean": "rm -rf dist"
@@ -29,7 +29,9 @@
     "nodemon": "^3.1.7",
     "prettier": "^3.4.2",
     "ts-node": "^10.9.2",
+    "ts-patch": "^3.3.0",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "typescript-transform-paths": "^3.5.2"
   }
 }

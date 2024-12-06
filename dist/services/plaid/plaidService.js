@@ -6,13 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createLinkToken = createLinkToken;
 exports.exchangePublicToken = exchangePublicToken;
 exports.fetchTransactions = fetchTransactions;
-const plaidClient_1 = __importDefault(require("@clients/plaid/plaidClient"));
+const plaidClient_1 = __importDefault(require("../../clients/plaid/plaidClient"));
 const plaid_1 = require("plaid");
-const User_1 = __importDefault(require("@models/user/User"));
-const CURRENT_USER_ID = 'test-user-123';
-// In a real app, get this from req.user after authentication.
+const User_1 = __importDefault(require("../../models/user/User"));
+const CURRENT_USER_ID = process.env.CURRENT_USER;
 async function createLinkToken() {
-    // Ensure user in DB
     let user = await User_1.default.findOne({ clientUserId: CURRENT_USER_ID });
     if (!user) {
         user = new User_1.default({ clientUserId: CURRENT_USER_ID });
@@ -31,17 +29,18 @@ async function createLinkToken() {
     return response.data.link_token;
 }
 async function exchangePublicToken(publicToken) {
-    const tokenResponse = await plaidClient_1.default.itemPublicTokenExchange({
-        public_token: publicToken,
-    });
+    const tokenResponse = await plaidClient_1.default.itemPublicTokenExchange({ public_token: publicToken });
     const access_token = tokenResponse.data.access_token;
     const item_id = tokenResponse.data.item_id;
     await User_1.default.findOneAndUpdate({ clientUserId: CURRENT_USER_ID }, { plaidAccessToken: access_token, plaidItemId: item_id }, { new: true, upsert: true });
     return { access_token, item_id };
 }
 async function fetchTransactions(start_date, end_date) {
-    const user = await User_1.default.findOne({ clientUserId: CURRENT_USER_ID });
-    if (!user || !user.plaidAccessToken) {
+    let user = await User_1.default.findOne({ clientUserId: CURRENT_USER_ID });
+    if (!user) {
+        user = await User_1.default.create({ clientUserId: CURRENT_USER_ID });
+    }
+    if (!user.plaidAccessToken) {
         throw new Error('User does not have a linked account');
     }
     const transactionsResponse = await plaidClient_1.default.transactionsGet({
